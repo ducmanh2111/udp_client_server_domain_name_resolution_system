@@ -10,17 +10,37 @@ Library of socket
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netdb.h>
 
+#ifndef NI_MAXHOST
+#define NI_MAXHOST 1025
+#endif
 #define MAXLINE 1024
 
 int main(int argc , char* argv[]) {
-	int sockfd;
-	if (argc != 3) {
-		printf("Syntax Error.\n");
-		printf("Syntax: ./client IPAddress PortNumber\n");
-		return 0;
-	}
-	printf("Server IP Address is: %s\n",argv[1]);
-	printf("Port access is: %s\n", argv[2]);
-	return 0;
+  if (argc != 3) {
+    printf("Syntax Error.\n");
+    printf("Syntax: ./client IPAddress PortNumber\n");
+    return 0;
+  }
+  char str[100];
+  printf("Please input domain/ip_address: ");
+  scanf("%s", str);
+  struct sockadd_in servaddr = {0};
+
+  int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sockfd == -1) {
+    perror("failed to create socket");
+    exit(EXIT_FAILURE);
+  }
+
+  servaddr.sin_family = AF_INET;
+  servaddr.sin_port = htons(argv[2]);
+  servaddr.sin_addr.s_addr = INADDR_ANY;
+
+  int len = sendto(sockfd, (const char *)str, strlen(str), 0, (const struct sockaddr *)&servaddr, sizeof(servaddr));
+  if (len == -1) {
+    perror("failed to send");
+  }
+  return 0;
 }
